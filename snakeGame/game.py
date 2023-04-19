@@ -1,5 +1,5 @@
 import pygame
-from level import Level
+from level import Level, GameStatus
 
 
 class Game():
@@ -31,14 +31,14 @@ class Game():
         if key[pygame.K_5]:
             return 5
         if key[pygame.K_q]:
-            return 'QuitGame'
+            return GameStatus.QUIT_GAME
         return 0
 
     def tryCloseGame(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return 'QuitGame'
-        return 'StillInMenu'
+                return GameStatus.QUIT_GAME
+        return GameStatus.SHOW_MENU
 
     def printMenu(self):
         surface = pygame.display.set_mode([self.kMenuLength, self.kMenuWidth])
@@ -62,24 +62,25 @@ class Game():
 
     def start(self):
         pygame.init()
+        pygame.display.set_caption('Snake')
         clock = pygame.time.Clock()
 
-        quitResult = 'StillInMenu'
-        while quitResult != 'QuitGame':
+        quitResult = GameStatus.SHOW_MENU
+        while quitResult != GameStatus.QUIT_GAME:
             self.printMenu()
 
             kFPS = 30
             clock.tick(kFPS)
 
             levelNum = self.getLevelNum()
-            if levelNum == 'QuitGame':
-                quitResult = 'QuitGame'
+            if levelNum == GameStatus.QUIT_GAME:
+                quitResult = GameStatus.QUIT_GAME
             elif levelNum != 0:
                 quitResult, score = Level(self.getWallCoords(levelNum)).play()
                 self.levelsRecords[levelNum - 1] = max(
                     self.levelsRecords[levelNum - 1], score)
 
-            if quitResult != 'QuitGame':
+            if quitResult != GameStatus.QUIT_GAME:
                 quitResult = self.tryCloseGame()
 
         self.updateFileLevelsRecords()

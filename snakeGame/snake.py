@@ -1,4 +1,18 @@
 import pygame
+from enum import Enum
+
+
+class SnakeDirection(Enum):
+    UP = 1
+    DOWN = 2
+    LEFT = 3
+    RIGHT = 4
+    NONE = 5
+
+
+class SnakeStatus(Enum):
+    MOVE = 1
+    STAY = 2
 
 
 class Snake():
@@ -9,7 +23,7 @@ class Snake():
         self.bodyCoords = [startPos]
         self.nowSpeed = self.kStartSpeed
         self.cycleCnt = 0
-        self.nowDirection = 'NS'
+        self.nowDirection = SnakeDirection.NONE
         self.directionIsSwitched = False
 
     def updateCycle(self):
@@ -18,42 +32,48 @@ class Snake():
         if self.cycleCnt == self.nowSpeed:
             self.cycleCnt = 0
             self.directionIsSwitched = False
-            if self.nowDirection != 'NS':
-                return 'Move'
-        return 'Stay'
+            if self.nowDirection != SnakeDirection.NONE:
+                return SnakeStatus.MOVE
+        return SnakeStatus.STAY
 
     def trySwitchDirection(self):
         if self.directionIsSwitched:
             return
         key = pygame.key.get_pressed()
-        if key[pygame.K_w] and not (self.nowDirection in {'W', 'S'}):
-            self.nowDirection = 'W'
+        if key[pygame.K_w] and not (self.nowDirection in
+                                    {SnakeDirection.UP, SnakeDirection.DOWN}):
+            self.nowDirection = SnakeDirection.UP
             self.directionIsSwitched = True
             return
-        if key[pygame.K_s] and not (self.nowDirection in {'W', 'S'}):
-            self.nowDirection = 'S'
+        if key[pygame.K_s] and not (self.nowDirection in
+                                    {SnakeDirection.UP, SnakeDirection.DOWN}):
+            self.nowDirection = SnakeDirection.DOWN
             self.directionIsSwitched = True
             return
-        if key[pygame.K_a] and not (self.nowDirection in {'A', 'D'}):
-            self.nowDirection = 'A'
+        if key[pygame.K_a] and not (self.nowDirection in
+                                    {SnakeDirection.LEFT,
+                                     SnakeDirection.RIGHT}):
+            self.nowDirection = SnakeDirection.LEFT
             self.directionIsSwitched = True
             return
-        if key[pygame.K_d] and not (self.nowDirection in {'A', 'D'}):
-            self.nowDirection = 'D'
+        if key[pygame.K_d] and not (self.nowDirection in
+                                    {SnakeDirection.LEFT,
+                                     SnakeDirection.RIGHT}):
+            self.nowDirection = SnakeDirection.RIGHT
             self.directionIsSwitched = True
             return
 
     def getNewHeadPos(self):
-        if self.nowDirection == 'NS':
+        if self.nowDirection == SnakeDirection.NONE:
             return self.bodyCoords[0]
         dx, dy = 0, 0
-        if self.nowDirection == 'W':
+        if self.nowDirection == SnakeDirection.UP:
             dy = -1
-        if self.nowDirection == 'S':
+        if self.nowDirection == SnakeDirection.DOWN:
             dy = 1
-        if self.nowDirection == 'A':
+        if self.nowDirection == SnakeDirection.LEFT:
             dx = -1
-        if self.nowDirection == 'D':
+        if self.nowDirection == SnakeDirection.RIGHT:
             dx = 1
         return (self.bodyCoords[-1][0] + dx, self.bodyCoords[-1][1] + dy)
 

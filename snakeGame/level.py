@@ -1,6 +1,19 @@
 import pygame
 import random
-from snake import Snake
+from snake import Snake, SnakeStatus
+from enum import Enum
+
+
+class LevelStatus(Enum):
+    BUMPED = 1
+    ATE_APPLE = 2
+
+
+class GameStatus(Enum):
+    PLAY_LEVEL = 1
+    QUIT_LEVEL = 2
+    SHOW_MENU = 3
+    QUIT_GAME = 4
 
 
 class Level():
@@ -28,24 +41,23 @@ class Level():
     def tryCloseLevel(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return 'QuitGame'
+                return GameStatus.QUIT_GAME
         key = pygame.key.get_pressed()
         if key[pygame.K_b]:
-            return 'QuitLevel'
-        return 'StillPlaying'
+            return GameStatus.QUIT_LEVEL
+        return GameStatus.PLAY_LEVEL
 
     def updateSnakeMove(self, newSnakeHeadPos):
         if not (newSnakeHeadPos in self.freeCells) and\
               newSnakeHeadPos != self.appleCoords:
-            return 'Bump'
+            return LevelStatus.BUMPED
         self.snake.moveHead(newSnakeHeadPos)
         if newSnakeHeadPos == self.appleCoords:
             self.placeApple()
             self.snake.speedUp()
-            return 'AteApple'
+            return LevelStatus.ATE_APPLE
         self.freeCells.add(self.snake.pullUpTail())
         self.freeCells.discard(newSnakeHeadPos)
-        return 'SimpleMoving'
 
     def getSquareParametrs(self, coord):
         return (coord[0] * self.kCellSize, coord[1] * self.kCellSize,
@@ -79,8 +91,8 @@ class Level():
                                            self.kFieldSize * self.kCellSize])
         clock = pygame.time.Clock()
 
-        quitResult = 'StillPlaying'
-        while quitResult == 'StillPlaying':
+        quitResult = GameStatus.PLAY_LEVEL
+        while quitResult == GameStatus.PLAY_LEVEL:
             surface.fill(pygame.Color('blue'))
             self.drawApple(surface, 'red')
             self.drawSnake(surface, 'gold', 'green')
@@ -89,19 +101,19 @@ class Level():
 
             clock.tick(self.kFPS)
 
-            if self.snake.updateCycle() == 'Move':
+            if self.snake.updateCycle() == SnakeStatus.MOVE:
                 newSnakeHeadPos = tuple(
                     [c % self.kFieldSize for c in self.snake.getNewHeadPos()])
                 moveResult = self.updateSnakeMove(newSnakeHeadPos)
-                if moveResult == 'Bump':
+                if moveResult == LevelStatus.BUMPED:
                     self.showFinalScore(surface, 'cyan')
                     break
-                if moveResult == 'AteApple':
+                if moveResult == LevelStatus.ATE_APPLE:
                     self.score += 1
 
             quitResult = self.tryCloseLevel()
 
-        while quitResult == 'StillPlaying':
+        while quitResult == GameStatus.PLAY_LEVEL:
             clock.tick(self.kFPS)
 
             quitResult = self.tryCloseLevel()
